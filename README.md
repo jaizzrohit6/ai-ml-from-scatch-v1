@@ -314,6 +314,343 @@ A **search problem** is formally defined as a tuple of all these components:
 Problem = (Initial State, Actions, Transition Model, Goal Test, Path Cost)
 ```
 
+
+---
+
+## ✅ Solution
+
+A **solution** is a sequence of actions that leads the agent from the **initial state** to the **goal state**.
+
+> 🗺️ If the search succeeds, the solution is the **path** the agent followed through the state space.
+
+```
+Initial State ──► Action 1 ──► State A ──► Action 2 ──► Goal State
+                                                              ✅
+```
+
+- A solution exists **only if** there is a reachable path from the initial state to any goal state.
+- If no such path exists → **no solution**.
+
+---
+
+## 🏆 Optimal Solution
+
+An **optimal solution** is the solution with the **lowest total path cost** among all possible solutions.
+
+> 💡 There may be many valid solutions — the optimal one is simply the **cheapest/shortest** one.
+
+### Example
+
+```
+Start ──5──► A ──3──► Goal        Total = 8  ✅ Optimal
+Start ──2──► B ──9──► Goal        Total = 11
+Start ──1──► C ──15─► Goal        Total = 16
+```
+
+| Solution | Path Cost | Optimal? |
+|---|---|---|
+| Start → A → Goal | 8 | ✅ Yes |
+| Start → B → Goal | 11 | ❌ No |
+| Start → C → Goal | 16 | ❌ No |
+
+> ⚠️ **Not all algorithms guarantee an optimal solution.** For example, DFS may find *a* solution but not the *best* one. Algorithms like UCS and A* are designed to find the optimal solution.
+
+---
+
+## 🗂️ Data Structures in Search
+
+To actually **implement** a search algorithm, we need the right data structures to keep track of what we've explored and what's left to explore.
+
+The two most important structures are:
+
+| Structure | Purpose |
+|---|---|
+| **Node** | Represents a single state in the search tree |
+| **Frontier** | Holds all nodes waiting to be explored |
+
+---
+
+## 🧱 Node Data Structure
+
+A **node** is the fundamental unit of a search tree. Every time the agent considers a state, it wraps it in a node.
+
+> 🗒️ A node is **not** just a state — it carries extra bookkeeping information so the agent can trace back the solution path.
+
+### A Node Keeps Track of:
+
+```
+┌─────────────────────────────────┐
+│             NODE                │
+│                                 │
+│  📍 State       → current state │
+│  👆 Parent      → previous node │
+│  ⚡ Action      → action taken  │
+│  💰 Path Cost   → g(n) so far   │
+└─────────────────────────────────┘
+```
+
+| Field | Description |
+|---|---|
+| **State** | The world configuration this node represents |
+| **Parent** | The node that generated this one (previous step) |
+| **Action** | The action applied to the parent to reach this node |
+| **Path Cost** | Total cost `g(n)` from the initial state to this node |
+
+### Code Representation
+
+```python
+class Node:
+    def __init__(self, state, parent=None, action=None, path_cost=0):
+        self.state     = state       # 📍 where we are
+        self.parent    = parent      # 👆 how we got here
+        self.action    = action      # ⚡ what action was taken
+        self.path_cost = path_cost   # 💰 total cost so far
+
+    def __repr__(self):
+        return f"Node(state={self.state}, cost={self.path_cost})"
+```
+
+### Why Do We Need Parent & Action?
+
+When we **find the goal**, we trace back through parent pointers to reconstruct the solution path:
+
+```
+Goal Node
+   └── parent → Node C  (action: RIGHT)
+                  └── parent → Node B  (action: UP)
+                                 └── parent → Initial Node  (action: None)
+
+Solution = [UP, RIGHT]  ✅
+```
+
+---
+
+## 🔍 The Search Approach — How It Works
+
+The general idea of search is simple: **systematically explore the state space** using a frontier until the goal is found.
+
+```
+┌──────────────────────────────────────────────┐
+│             SEARCH ALGORITHM                 │
+│                                              │
+│  1. Start with the initial state             │
+│  2. Expand nodes one by one                  │
+│  3. Keep unexplored nodes in the FRONTIER    │
+│  4. Stop when goal is found (or frontier     │
+│     is empty → no solution)                  │
+└──────────────────────────────────────────────┘
+```
+
+---
+
+## 🌅 Frontier
+
+The **frontier** is the collection of all nodes that have been **discovered but not yet explored**. It always starts with just the initial state.
+
+> 🚪 Think of the frontier as the **boundary** between the explored and unexplored world.
+
+### Initial Setup
+
+```
+                    FRONTIER
+                  ┌──────────┐
+                  │  [Start] │  ← only the initial state
+                  └──────────┘
+
+   Explored: {}   (nothing yet)
+```
+
+### As Search Progresses
+
+```
+Step 1 — Frontier: [Start]
+         Explored: {}
+
+             [Start]
+            /   |   \
+          [A]  [B]  [C]
+
+Step 2 — Expand Start → add children to frontier
+         Frontier: [A, B, C]
+         Explored: {Start}
+
+Step 3 — Expand A → add A's children
+         Frontier: [B, C, D, E]
+         Explored: {Start, A}
+
+                  [Start]
+                 /   |   \
+              [A]✓  [B]  [C]
+             /   \
+           [D]   [E]
+            ↑ added to frontier
+```
+
+---
+
+## 📋 Search Algorithm — Step by Step
+
+Here is the complete search loop, explained with every condition:
+
+---
+
+### Step 1 — Initialize
+
+```
+frontier = { initial_state_node }
+explored = {}
+```
+
+Start with the initial state in the frontier, nothing explored.
+
+---
+
+### Step 2 — If Frontier is Empty → No Solution ❌
+
+```
+if frontier is EMPTY:
+    return "No Solution"
+```
+
+```
+FRONTIER
+┌──────────┐
+│  (empty) │  ← nothing left to explore
+└──────────┘
+      ↓
+  ❌ NO SOLUTION EXISTS
+```
+
+> This means every reachable state was explored and **none was a goal**.
+
+---
+
+### Step 3 — Remove a Node from Frontier
+
+```
+node = frontier.remove()
+```
+
+Pick a node from the frontier to examine. **Which node you pick** determines the search strategy:
+
+| Strategy | Remove From | Result |
+|---|---|---|
+| **BFS** | Front (Queue) | Explores level by level |
+| **DFS** | Top (Stack) | Goes deep first |
+| **UCS / A\*** | Lowest cost (Priority Queue) | Finds optimal path |
+
+---
+
+### Step 4 — Goal Test ✅
+
+```
+if GOAL-TEST(node.state):
+    return SOLUTION(node)
+```
+
+```
+  Remove node from frontier
+         │
+         ▼
+  ┌─────────────────┐
+  │ Is this the     │──── YES ──► 🎉 Return Solution!
+  │ goal state?     │
+  └─────────────────┘
+         │
+        NO
+         │
+         ▼
+  Continue to expand...
+```
+
+Trace back via parent pointers to reconstruct the full action sequence.
+
+---
+
+### Step 5 — Expand the Node
+
+```
+explored.add(node.state)
+
+for each action in ACTIONS(node.state):
+    child_state = RESULT(node.state, action)
+    child_node  = Node(child_state, parent=node, action=action, ...)
+    
+    if child_state not in explored and not in frontier:
+        frontier.add(child_node)
+```
+
+```
+         [node]           ← currently expanding
+        /   |   \
+     [A]   [B]   [C]      ← child nodes added to frontier
+      ↓     ↓     ↓
+   frontier frontier frontier
+```
+
+> ⚠️ We only add a child if it's **not already explored** and **not already in the frontier** — to avoid infinite loops!
+
+---
+
+### 🔁 Full Algorithm Pseudocode
+
+```
+function SEARCH(problem):
+
+    node     ← Node(problem.initial_state)
+    frontier ← { node }
+    explored ← {}
+
+    loop:
+        if frontier is EMPTY:
+            return "No Solution" ❌
+
+        node ← frontier.remove()         # pick next node
+
+        if GOAL-TEST(node.state):
+            return SOLUTION(node) ✅      # trace back the path
+
+        explored.add(node.state)
+
+        for action in ACTIONS(node.state):
+            child ← RESULT(node.state, action)
+            if child not in explored and child not in frontier:
+                frontier.add(child)       # add to frontier
+```
+
+### Complete Visual Flow
+
+```
+  ┌─────────────────────────────────────────────┐
+  │  frontier = [Initial State]                 │
+  └───────────────────┬─────────────────────────┘
+                      │
+                      ▼
+  ┌───────────────────────────────────┐
+  │   Is frontier EMPTY?              │──── YES ──► ❌ No Solution
+  └───────────────────┬───────────────┘
+                      │ NO
+                      ▼
+  ┌───────────────────────────────────┐
+  │   Remove a node from frontier     │
+  └───────────────────┬───────────────┘
+                      │
+                      ▼
+  ┌───────────────────────────────────┐
+  │   Is it the GOAL STATE?           │──── YES ──► ✅ Return Solution
+  └───────────────────┬───────────────┘
+                      │ NO
+                      ▼
+  ┌───────────────────────────────────┐
+  │   Expand node → get children      │
+  │   Add new children to frontier    │
+  └───────────────────┬───────────────┘
+                      │
+                      └──────────────────► 🔁 Loop back
+```
+
+---
+
 ### The Full Picture
 
 ```
@@ -334,11 +671,12 @@ Problem = (Initial State, Actions, Transition Model, Goal Test, Path Cost)
 
 ---
 
+
 ## 📅 Daily Log
 
-| Date | Topic | Status |
+| Day | Topics | Status |
 |---|---|---|
-| Day 1 | Agent, State, Initial State, Actions, Transition Model, State Space, Goal Test, Path Cost | ✅ Done |
+| Day 1 | Agent, State, Initial State, Actions, Transition Model, State Space, Goal Test, Path Cost, Solution, Optimal Solution, Data Structures, Node DS (state/parent/action/path cost), Frontier, Search Approach | ✅ Done |
 | Day 2 | *(coming soon)* | 🔜 |
 | Day 3 | *(coming soon)* | 🔜 |
 
