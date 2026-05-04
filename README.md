@@ -676,7 +676,7 @@ function SEARCH(problem):
 
 | Day | Topics | Status |
 |---|---|---|
-| Day 1 | Agent, State, Initial State, Actions, Transition Model, State Space, Goal Test, Path Cost, Solution, Optimal Solution, Data Structures, Node DS (state/parent/action/path cost), Frontier, Search Approach | ✅ Done |
+| Day 1 | Agent, State, Initial State, Actions, Transition Model, State Space, Goal Test, Path Cost, Solution, Optimal Solution, Data Structures, Node DS (state/parent/action/path cost), Frontier, Search Approach | 🔄 In Progress |
 | Day 2 | *(coming soon)* | 🔜 |
 | Day 3 | *(coming soon)* | 🔜 |
 
