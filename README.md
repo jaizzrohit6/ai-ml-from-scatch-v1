@@ -2,6 +2,15 @@
 
 > A personal learning journal documenting my journey through AI & ML fundamentals — one concept at a time.
 
+activate Virtual env in windows`venv\Scripts\activate`
+
+> Youtube Links for `Python for AI` - https://www.youtube.com/watch?v=ygXn5nV5qFc&list=PL-Y17yukoyy0SupAJSPQYg_Lvre9Kt9EG
+
+day1 - 50 min
+
+> 
+
+
 ![Progress](https://img.shields.io/badge/Status-Active-brightgreen)
 ![Topics](https://img.shields.io/badge/Topics%20Covered-8-blue)
 ![Learning](https://img.shields.io/badge/Learning-Daily-orange)
