@@ -21,4 +21,4 @@ def multiplication_table(n):
     return table
 
 n=5
-print(multiplication_table(n))
+#print(multiplication_table(n))
