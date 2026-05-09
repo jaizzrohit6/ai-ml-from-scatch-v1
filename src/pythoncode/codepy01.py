@@ -14,11 +14,24 @@ Output: [6, 12, 18, 24, 30, 36, 42, 48, 54, 60]
 
 '''
 
-def multiplication_table(n):
-    table=[]
-    for i in range(1,11):
-        table.append(n*i)
-    return table
+# def multiplication_table(n):
+#     table=[]
+#     for i in range(1,11):
+#         table.append(n*i)
+#     return table
 
-n=5
+# n=5
 #print(multiplication_table(n))
+
+
+
+'''
+   take user input 
+'''
+
+# def functionTakeUserInput():
+#     name=input("Enter your name:")
+#     age=int(input("Enter your age:"))
+#     print(f"your name is {name} and age is {age}")
+
+# functionTakeUserInput()
